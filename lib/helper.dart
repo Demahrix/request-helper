@@ -204,7 +204,7 @@ class RequestHelper<R> {
     var data = await asyncPrefs.getString(key);
     if (data == null)
       return null;
-    return http.Response(data, 217);
+    return http.Response(data, 217, headers: { 'Content-type': 'application/json; charset=utf-8' });
   }
 
   Future<void> _saveInCache(HttpMethod method, String url, http.Response response) async {
