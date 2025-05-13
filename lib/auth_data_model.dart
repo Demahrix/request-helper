@@ -11,6 +11,10 @@ class AuthDataModel<R> {
     required this.refreshToken
   });
 
+  factory AuthDataModel.fromJson(Map<String, dynamic> data) {
+    return AuthDataModel(reference: data['reference'], accessToken: data['accessToken'], refreshToken: data['refreshToken']);
+  }
+
   Map<String, dynamic> toMap() => {
     'reference': reference,
     'accessToken': accessToken,
