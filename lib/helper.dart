@@ -11,7 +11,8 @@ import 'http_method.dart';
 
 class RequestHelper<R> {
 
-  final String baseUrl;
+  final String? baseUrl;
+  final String Function()? baseUrlBuilder;
   final dynamic Function(int statusCode, Uint8List body) errorBuilder;
   final FutureOr<String> Function() getToken;
   final Future<AuthModel<R>> Function() fetchRefreshToken;
@@ -21,16 +22,21 @@ class RequestHelper<R> {
   final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
 
   RequestHelper({
-    required this.baseUrl,
+    this.baseUrl,
+    this.baseUrlBuilder,
     required this.errorBuilder,
     required this.getToken,
     required this.fetchRefreshToken,
     required this.saveTokens,
     required this.isAuthenticateError,
     this.onDisconnect
-  });
+  }): assert((baseUrl == null) != (baseUrlBuilder == null));
 
   static bool ok(int statusCode) => statusCode >= 200 && statusCode <= 299;
+
+  String _getBaseUrl() {
+    return baseUrl ?? baseUrlBuilder!();
+  }
 
   Future<T> get<T>(String path, {
     Map<String, String>? headers,
@@ -137,7 +143,7 @@ class RequestHelper<R> {
         ...headers
     };
 
-    var url = completeUrl ?? '$baseUrl$path';
+    var url = completeUrl ?? '$_getBaseUrl()$path';
 
     Future<http.Response> future = fn == null
       ? (client?.get ?? http.get)(Uri.parse(url), headers: currentHeaders)
