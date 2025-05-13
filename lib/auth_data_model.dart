@@ -1,11 +1,11 @@
 
-class AuthModel<R> {
+class AuthDataModel<R> {
 
   final R reference;
   final String accessToken;
   final String refreshToken;
 
-  AuthModel({
+  AuthDataModel({
     required this.reference,
     required this.accessToken,
     required this.refreshToken
@@ -16,5 +16,13 @@ class AuthModel<R> {
     'accessToken': accessToken,
     'refreshToken': refreshToken
   };
+
+  AuthDataModel<R> merge({ String? refreshToken, String? accessToken }) {
+    return AuthDataModel(
+      reference: reference,
+      refreshToken: refreshToken ?? this.refreshToken,
+      accessToken: accessToken ?? this.accessToken
+    );
+  }
 
 }

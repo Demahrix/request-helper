@@ -5,7 +5,7 @@ import 'dart:io' show SocketException;
 import 'dart:typed_data' show Uint8List;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:request_helper/auth_model.dart';
+import 'package:request_helper/auth_data_model.dart';
 import 'http_method.dart';
 
 
@@ -15,8 +15,8 @@ class RequestHelper<R> {
   final String Function()? _baseUrlBuilder;
   final dynamic Function(int statusCode, Uint8List body) _errorBuilder;
   final FutureOr<String> Function() _getToken;
-  final Future<AuthModel<R>> Function() _fetchRefreshToken;
-  final FutureOr<void> Function(AuthModel<R>) _saveTokens;
+  final Future<AuthDataModel<R>> Function() _fetchRefreshToken;
+  final FutureOr<void> Function(AuthDataModel<R>) _saveTokens;
   final bool Function(dynamic error) _isAuthenticateError;
   final void Function(String path, dynamic error)? _onDisconnect;
 
@@ -27,8 +27,8 @@ class RequestHelper<R> {
     String Function()? baseUrlBuilder,
     required dynamic Function(int statusCode, Uint8List body) errorBuilder,
     required FutureOr<String> Function() getToken,
-    required Future<AuthModel<R>> Function() fetchRefreshToken,
-    required FutureOr<void> Function(AuthModel<R>) saveTokens,
+    required Future<AuthDataModel<R>> Function() fetchRefreshToken,
+    required FutureOr<void> Function(AuthDataModel<R>) saveTokens,
     required bool Function(dynamic error) isAuthenticateError,
     void Function(String path, dynamic error)? onDisconnect
   }): _baseUrl = baseUrl,
