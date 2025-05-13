@@ -152,7 +152,7 @@ class RequestHelper<R> {
         ...headers
     };
 
-    var url = completeUrl ?? '$_getBaseUrl()$path';
+    var url = completeUrl ?? '$${_getBaseUrl()}$path';
 
     Future<http.Response> future = fn == null
       ? (client?.get ?? http.get)(Uri.parse(url), headers: currentHeaders)
