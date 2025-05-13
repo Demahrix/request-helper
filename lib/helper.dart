@@ -11,31 +11,40 @@ import 'http_method.dart';
 
 class RequestHelper<R> {
 
-  final String? baseUrl;
-  final String Function()? baseUrlBuilder;
-  final dynamic Function(int statusCode, Uint8List body) errorBuilder;
-  final FutureOr<String> Function() getToken;
-  final Future<AuthModel<R>> Function() fetchRefreshToken;
-  final FutureOr<void> Function(AuthModel<R>) saveTokens;
-  final bool Function(dynamic error) isAuthenticateError;
-  final void Function(String path, dynamic error)? onDisconnect;
-  final SharedPreferencesAsync asyncPrefs = SharedPreferencesAsync();
+  final String? _baseUrl;
+  final String Function()? _baseUrlBuilder;
+  final dynamic Function(int statusCode, Uint8List body) _errorBuilder;
+  final FutureOr<String> Function() _getToken;
+  final Future<AuthModel<R>> Function() _fetchRefreshToken;
+  final FutureOr<void> Function(AuthModel<R>) _saveTokens;
+  final bool Function(dynamic error) _isAuthenticateError;
+  final void Function(String path, dynamic error)? _onDisconnect;
+
+  final SharedPreferencesAsync _asyncPrefs = SharedPreferencesAsync();
 
   RequestHelper({
-    this.baseUrl,
-    this.baseUrlBuilder,
-    required this.errorBuilder,
-    required this.getToken,
-    required this.fetchRefreshToken,
-    required this.saveTokens,
-    required this.isAuthenticateError,
-    this.onDisconnect
-  }): assert((baseUrl == null) != (baseUrlBuilder == null));
+    String? baseUrl,
+    String Function()? baseUrlBuilder,
+    required dynamic Function(int statusCode, Uint8List body) errorBuilder,
+    required FutureOr<String> Function() getToken,
+    required Future<AuthModel<R>> Function() fetchRefreshToken,
+    required FutureOr<void> Function(AuthModel<R>) saveTokens,
+    required bool Function(dynamic error) isAuthenticateError,
+    void Function(String path, dynamic error)? onDisconnect
+  }): _baseUrl = baseUrl,
+      _baseUrlBuilder = baseUrlBuilder,
+      _errorBuilder = errorBuilder,
+      _getToken = getToken,
+      _fetchRefreshToken = fetchRefreshToken,
+      _saveTokens = saveTokens,
+      _isAuthenticateError = isAuthenticateError,
+      _onDisconnect = onDisconnect,
+      assert((baseUrl == null) != (baseUrlBuilder == null));
 
   static bool ok(int statusCode) => statusCode >= 200 && statusCode <= 299;
 
   String _getBaseUrl() {
-    return baseUrl ?? baseUrlBuilder!();
+    return _baseUrl ?? _baseUrlBuilder!();
   }
 
   Future<T> get<T>(String path, {
@@ -131,7 +140,7 @@ class RequestHelper<R> {
     String? token;
 
     if (includeToken)
-      token = await getToken();
+      token = await _getToken();
 
     Map<String, String> currentHeaders = {
       'Content-Type': 'application/json',
@@ -164,7 +173,7 @@ class RequestHelper<R> {
     }
 
     if (!ok(response.statusCode))
-      throw errorBuilder(response.statusCode, response.bodyBytes);
+      throw _errorBuilder(response.statusCode, response.bodyBytes);
 
     return requestParser(response);
   }
@@ -184,20 +193,20 @@ class RequestHelper<R> {
       var response = await _requestHelper(method: method, headers: headers, path: path, completeUrl: completeUrl, client: client, body: body, includeToken: includeToken, requestParser: requestParser, cache: cache);
       return response;
     } catch (err) {
-      if (!(isAuthenticateError(err))) // Continue
+      if (!(_isAuthenticateError(err))) // Continue
         rethrow;
     }
 
     try {
-      var authData = await fetchRefreshToken();
-      await saveTokens(authData);
+      var authData = await _fetchRefreshToken();
+      await _saveTokens(authData);
       log('#####################################################################');
       log('########################## REFRESH TOKEN ############################');
       log('#####################################################################');
       return await _requestHelper(method: method, headers: headers, path: path, completeUrl: completeUrl, client: client, body: body, includeToken: includeToken, requestParser: requestParser, cache: cache);
     } catch(e) {
       if (e is! SocketException)
-        onDisconnect?.call((path ?? completeUrl)!, e);
+        _onDisconnect?.call((path ?? completeUrl)!, e);
       rethrow;
     }
   }
@@ -207,7 +216,7 @@ class RequestHelper<R> {
 
   Future<http.Response?> _getInCache(HttpMethod method, String url) async {
     var key = _getCacheKey(method, url);
-    var data = await asyncPrefs.getString(key);
+    var data = await _asyncPrefs.getString(key);
     if (data == null)
       return null;
     return http.Response.bytes(utf8.encode(data), 217, headers: { 'Content-type': 'application/json; charset=utf-8' });
@@ -216,7 +225,7 @@ class RequestHelper<R> {
   Future<void> _saveInCache(HttpMethod method, String url, http.Response response) async {
     try {
       var key = _getCacheKey(method, url);
-      await asyncPrefs.setString(key, utf8.decode(response.bodyBytes));
+      await _asyncPrefs.setString(key, utf8.decode(response.bodyBytes));
     } catch(err) {}
   }
 
