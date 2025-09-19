@@ -158,23 +158,23 @@ class RequestHelper<R> {
       ? (client?.get ?? http.get)(Uri.parse(url), headers: currentHeaders)
       : fn(Uri.parse(url), headers: currentHeaders, body: body);
 
-    http.Response response;
+    http.Response? response = null;
 
     try {
       response = await future;
-      if (ok(response.statusCode))
+      if (cache && ok(response.statusCode))
         _saveInCache(method, url, response);
     } catch(err) {
-      // Uniquement des erreurs de connexion ou de communications au serveurs
-      var result = await _getInCache(method, url);
-      if (result == null)
-        rethrow;
-      response = result;
+      if (cache && (err is SocketException)) {
+        var result = await _getInCache(method, url);
+        if (result == null)
+          rethrow;
+        response = result;
+      }
     }
 
-    if (!ok(response.statusCode))
+    if (!ok(response!.statusCode))
       throw _errorBuilder(response.statusCode, response.bodyBytes);
-
     return requestParser(response);
   }
 
