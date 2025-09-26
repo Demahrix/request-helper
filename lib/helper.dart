@@ -43,7 +43,7 @@ class RequestHelper<R> {
 
   static bool ok(int statusCode) => statusCode >= 200 && statusCode <= 299;
 
-  String _getBaseUrl() {
+  String getBaseUrl() {
     return _baseUrl ?? _baseUrlBuilder!();
   }
 
@@ -152,13 +152,13 @@ class RequestHelper<R> {
         ...headers
     };
 
-    var url = completeUrl ?? '${_getBaseUrl()}$path';
+    var url = completeUrl ?? '${getBaseUrl()}$path';
 
     Future<http.Response> future = fn == null
       ? (client?.get ?? http.get)(Uri.parse(url), headers: currentHeaders)
       : fn(Uri.parse(url), headers: currentHeaders, body: body);
 
-    http.Response? response = null;
+    http.Response? response;
 
     try {
       response = await future;
