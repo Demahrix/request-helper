@@ -170,10 +170,12 @@ class RequestHelper<R> {
         if (result == null)
           rethrow;
         response = result;
+      } else {
+        rethrow;
       }
     }
 
-    if (!ok(response!.statusCode))
+    if (!ok(response.statusCode))
       throw _errorBuilder(response.statusCode, response.bodyBytes);
     return requestParser(response);
   }
