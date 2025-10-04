@@ -143,7 +143,8 @@ class RequestHelper<R> {
       token = await _getToken();
 
     Map<String, String> currentHeaders = {
-      'Content-Type': 'application/json',
+      if (body != null)
+        'Content-Type': 'application/json',
       'Accept': '*/*',
       'Accept-Encoding': 'gzip, deflate',
       if (token != null)
